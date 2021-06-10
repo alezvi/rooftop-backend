@@ -94,15 +94,55 @@ app.post('/products', function (req, res) {
 })
 
 app.patch('/products/:id', function (req, res) {
-    if (req.params.id == 45) {
+    // buscar el dato que voy a editar
+    let index = products.findIndex(product => product.id == req.params.id)
+
+    if (index == -1) {
         return res.status(404).json({message: "Not found"})
     }
 
-    res.json()
+    let old = products[index]
+
+    // editar ese dato
+    let product = {
+        ...products[index],
+        ...req.body,
+        id: old.id,
+    }
+
+    products[index] = product
+
+    // volver a convertir a string
+    let content = JSON.stringify(products)
+
+    // guardar el contenido en el archivo
+    fs.writeFileSync('./products.json', content)
+
+    res.status(201).json({message: "success"});
 })
 
 app.delete('/products/:id', function (req, res) {
-    res.json()
+    // obtener el contenido (string)
+    let content = fs.readFileSync('./products.json', {encoding: 'utf8'})
+
+    // interpretar el contenido como array/json
+    let products = JSON.parse(content)
+
+    let index = products.findIndex(product => product.id == req.params.id)
+
+    if (index == -1) {
+        return res.status(404).json({message: "Not found"})
+    }
+
+    products = products.filter(product => product.id != Number(req.params.id))
+
+    // volver a convertir a string
+    content = JSON.stringify(products)
+
+    // guardar el contenido en el archivo
+    fs.writeFileSync('./products.json', content)
+
+    res.status(201).json({message: "success"});
 })
 
 app.listen(3000)
